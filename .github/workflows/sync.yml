@@ -1,0 +1,36 @@
+name: Sync from Upstream
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream and sync main
+        run: |
+          git remote add upstream https://github.com/timerring/bilive.git
+          git fetch upstream --tags --prune
+          git checkout main
+          if git merge --ff-only upstream/main 2>/dev/null; then
+            echo "fast-forwarded to upstream/main"
+          else
+            git merge --no-edit upstream/main
+          fi
+          git push origin main --tags
