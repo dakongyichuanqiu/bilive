@@ -33,4 +33,12 @@ jobs:
           else
             git merge --no-edit upstream/main
           fi
+          git rm --ignore-unmatch --cached .github/workflows/deploy.yml .github/workflows/stale.yml >/dev/null 2>&1 || true
+          rm -f .github/workflows/deploy.yml .github/workflows/stale.yml
+          git add -A .github/workflows
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: drop upstream workflows that fail on forks (deploy/stale)"
+          else
+            echo "no workflow cleanup needed"
+          fi
           git push origin main --tags
